@@ -77,14 +77,14 @@ def read_file(fn):
             if cells[2] != '':
                 person, address = parse_person_address(cells[2])
                 person2address[person] = address
-                print "%s\t%s\t%s" % (currentOrg, person, 'Commissaire')
+                print "%s\t%s\t%s" % (currentOrg, person, currentHeaders[2])
 
     print >> sys.stderr, "organization2address = ", organization2address
     print >> sys.stderr, "person2address = ", person2address
 
 def parse_person_address(string):
 
-    m = re.match(r'(\s*M[me\.]*)\s([\S\s]+[A-Z])\s+([\s\S]+){2}', string)
+    m = re.match(r'(\s*M[me\.]*)\s([\S\s]+[A-Z])\s+([\s\S]+)', string)
 
     if m:
         return m.group(2), m.group(3)
