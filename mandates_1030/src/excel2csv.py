@@ -72,7 +72,7 @@ def process_file():
 #                else:
 #                    print >> sys.stderr, "parts = ", parts
 
-            mandateWriter.writerow(['','',''])
+#            mandateWriter.writerow(['','',''])
 
 
 #            else:
