@@ -29,6 +29,12 @@ ${MANDATES_GRAPHML}: ${BUILDGRAPHML} ${MANDATES_CSV}
 				--source_label_fieldname person \
 				--target_label_fieldname org \
 				--edge_label_fieldname role \
+				--source_node_size log2degree \
+				--source_min_node_size 5 \
+				--source_node_size_multiplier 2 \
+				--target_node_size log2degree \
+				--target_min_node_size 4 \
+				--target_node_size_multiplier 2 \
  				--outfile_graphml ${MANDATES_GRAPHML}
 clean:
 	rm -rf ${OUTDIR}
