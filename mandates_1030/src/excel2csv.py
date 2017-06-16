@@ -113,7 +113,7 @@ def parse_person_address(string):
     if m:
         return m.group(2), m.group(3)
     else:
-        return 'UNKNOWN_PERSON', 'UNKNOWN_ADDRESS'
+        return string, ''
 
 def determineLineType(cells):
     
@@ -121,9 +121,9 @@ def determineLineType(cells):
 
     assert(len(cells) == 3)
 
-    if cells[0] == 'AG' or cells[1] == 'CA' or 'sentation' in cells[0]:
+    if cells[0] == 'AG' or cells[1] == 'CA' or 'sentation' in cells[0] or cells[0] == 'observateurs':
         return 'header'
-    elif (re.match('M[me. ]',cells[0]) and len(cells[0]) > 40) or (re.match('M[m.]',cells[1]) and len(cells[1]) > 40):
+    elif re.match('M[me. ]',cells[0]) or re.match('M[m.]',cells[1]):
         return 'person_with_address'
     elif cells[0] == '' and cells[1] == '' and cells[2] == '':
         return 'empty'
