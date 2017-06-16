@@ -17,9 +17,6 @@ def init():
                         help='output file with people in CSV format',
                         required=True)
     parser.add_argument('--outfile_mandates', dest='outfile_mandates', 
-                        help='normalized output file with mandates (people/organizations) in CSV format',
-                        required=True)
-    parser.add_argument('--outfile_mandates_denorm', dest='outfile_mandates_denorm', 
                         help='denormalized output file with mandates (people/organizations) in CSV format',
                         required=False)
     global args
@@ -39,11 +36,11 @@ def process_file():
 
     wb = open_workbook(filename=args['infile'], encoding_override='utf-8')
     sheet = wb.sheet_by_index(0)
-    print >> sys.stderr, "Reading %d rows and %s columns" % (sheet.nrows, sheet.ncols)
+    print >> sys.stderr, "Reading %d rows and %s columns from %s" % (sheet.nrows, sheet.ncols, args['infile'])
 
     firstRowsToIgnore = 5
 
-    mandateFH = open(args['outfile_mandates_denorm'], 'wb')
+    mandateFH = open(args['outfile_mandates'], 'wb')
     mandateWriter = csv.writer(mandateFH, delimiter='\t')
 
     mandateHeaders = ['org','person','role']
@@ -72,8 +69,8 @@ def process_file():
                 parts = re.split(' - ', cells[0], maxsplit=1)
                 if len(parts) == 2:
                     currentOrg, address = parts
-                else:
-                    print >> sys.stderr, "parts = ", parts
+#                else:
+#                    print >> sys.stderr, "parts = ", parts
 
             mandateWriter.writerow(['','',''])
 
@@ -90,9 +87,9 @@ def process_file():
             if cells[0] != '':
                 person, address = parse_person_address(cells[0])
                 person2address[person] = address   
-                print >> sys.stderr, "currentOrg = %s" % currentOrg
-                print >> sys.stderr, "person = %s" % person
-                print >> sys.stderr, "currentHeaders[0] = %s" % currentHeaders[0]
+#                print >> sys.stderr, "currentOrg = %s" % currentOrg
+#                print >> sys.stderr, "person = %s" % person
+#                print >> sys.stderr, "currentHeaders[0] = %s" % currentHeaders[0]
                 mandateWriter.writerow([currentOrg.encode('utf-8'), person.encode('utf-8'), currentHeaders[0].encode('utf-8')])
             if cells[1] != '':
                 person, address = parse_person_address(cells[1])
@@ -103,8 +100,34 @@ def process_file():
                 person2address[person] = address
                 mandateWriter.writerow([currentOrg.encode('utf-8'), person.encode('utf-8'), currentHeaders[2].encode('utf-8')])
 
-    print >> sys.stderr, "organization2address = ", organization2address
-    print >> sys.stderr, "person2address = ", person2address
+    print >> sys.stderr, "Wrote %s" % args['outfile_mandates']
+
+    # WRITE PEOPLE
+    
+    peopleFH = open(args['outfile_people'], 'wb')
+    peopleWriter = csv.writer(peopleFH, delimiter='\t')
+
+    peopleHeaders = ['person','address']
+    peopleWriter.writerow(peopleHeaders)
+
+    for person in sorted(person2address.keys()):
+        peopleWriter.writerow([person.encode('utf-8'), person2address[person].encode('utf-8')])
+
+    print >> sys.stderr, "Wrote %s" % args['outfile_people']
+
+    # WRITE ORGANIZATIONS
+
+    orgFH = open(args['outfile_org'], 'wb')
+    orgWriter = csv.writer(orgFH, delimiter='\t')
+
+    orgHeaders = ['org','address']
+    orgWriter.writerow(orgHeaders)
+
+    for org in sorted(organization2address.keys()):
+        orgWriter.writerow([org.encode('utf-8'), organization2address[org].encode('utf-8')])
+
+    print >> sys.stderr, "Wrote %s" % args['outfile_org']
+
 
 def parse_person_address(string):
 
