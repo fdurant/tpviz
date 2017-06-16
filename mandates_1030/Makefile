@@ -4,7 +4,8 @@ OUTDIR=out
 
 EXCEL2CSV=${SRCDIR}/excel2csv.py
 
-INFILE=${DATADIR}/schaerbeek-mandats-partie_1-3.xls
+#INFILE=${DATADIR}/schaerbeek-mandats-partie_1-3.xls
+INFILE=${DATADIR}/schaerbeek-mandats-partie_1-3_Frederik.xls
 
 OUTFILE_ORG=${OUTDIR}/organizations_1030.csv
 OUTFILE_PEOPLE=${OUTDIR}/people_1030.csv

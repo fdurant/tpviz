@@ -63,7 +63,7 @@ def process_file():
 
         if (lineType == 'org_or_category'):
             # Next line is the exception, actually
-            m = re.match(ur'^([\S\s]+?)\u2014 ([\S\s]+)$', cells[0], flags=re.UNICODE)
+            m = re.match(ur'^([^\-]+?)\u2014 ([\S\s]+)$', cells[0], flags=re.UNICODE)
             if m:
                 currentOrg = m.group(1)
                 address = m.group(2)
@@ -72,6 +72,12 @@ def process_file():
                 parts = re.split(' - ', cells[0], maxsplit=1)
                 if len(parts) == 2:
                     currentOrg, address = parts
+                else:
+                    print >> sys.stderr, "parts = ", parts
+
+            mandateWriter.writerow(['','',''])
+
+
 #            else:
 #                currentOrg, address = ['UNK','UNK']
 
@@ -102,7 +108,7 @@ def process_file():
 
 def parse_person_address(string):
 
-    m = re.match(r'(\s*M[me\.]*)\s([\S\s]+[A-Z])\s+([\s\S]+)', string)
+    m = re.match(ur'(\s*M[mevr\.]*)[\s;]+([\S\s\-]+[A-Z\u00C0-\u00DE]{3})\s+([\s\S]+)', string)
 
     if m:
         return m.group(2), m.group(3)
@@ -117,7 +123,7 @@ def determineLineType(cells):
 
     if cells[0] == 'AG' or cells[1] == 'CA' or 'sentation' in cells[0]:
         return 'header'
-    elif re.match('M[m.]',cells[0]) and len(cells[0]) > 40:
+    elif (re.match('M[me. ]',cells[0]) and len(cells[0]) > 40) or (re.match('M[m.]',cells[1]) and len(cells[1]) > 40):
         return 'person_with_address'
     elif cells[0] == '' and cells[1] == '' and cells[2] == '':
         return 'empty'
