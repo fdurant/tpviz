@@ -3,7 +3,7 @@ import csv
 import sys
 from xlrd import open_workbook
 import re
-
+import codecs
 
 def init():
     parser = argparse.ArgumentParser()
@@ -27,7 +27,7 @@ def init():
     print >> sys.stderr, args
 
 
-def read_file(fn):
+def process_file():
 
     currentOrg = ''
     currentAddress = ''
@@ -37,11 +37,17 @@ def read_file(fn):
     organization2address = {}
     person2address = {}
 
-    wb = open_workbook(filename=fn)
+    wb = open_workbook(filename=args['infile'], encoding_override='utf-8')
     sheet = wb.sheet_by_index(0)
     print >> sys.stderr, "Reading %d rows and %s columns" % (sheet.nrows, sheet.ncols)
 
     firstRowsToIgnore = 5
+
+    mandateFH = open(args['outfile_mandates_denorm'], 'wb')
+    mandateWriter = csv.writer(mandateFH, delimiter='\t')
+
+    mandateHeaders = ['org','person','role']
+    mandateWriter.writerow(mandateHeaders)
 
     for rowNr in range(firstRowsToIgnore,sheet.nrows):
 
@@ -49,14 +55,23 @@ def read_file(fn):
 
         for colNr in range(sheet.ncols):
 
-            cells.append(sheet.cell_value(rowNr,colNr))
+            val = sheet.cell_value(rowNr,colNr)
+            assert(type(val) == type(u''))
+            cells.append(val)
         
         lineType = determineLineType(cells)
 
         if (lineType == 'org_or_category'):
-            parts = re.split(' - ', cells[0], maxsplit=1)
-            if len(parts) == 2:
-                currentOrg, address = parts
+            # Next line is the exception, actually
+            m = re.match(ur'^([\S\s]+?)\u2014 ([\S\s]+)$', cells[0], flags=re.UNICODE)
+            if m:
+                currentOrg = m.group(1)
+                address = m.group(2)
+            else:
+                # And this is the normal case
+                parts = re.split(' - ', cells[0], maxsplit=1)
+                if len(parts) == 2:
+                    currentOrg, address = parts
 #            else:
 #                currentOrg, address = ['UNK','UNK']
 
@@ -68,16 +83,19 @@ def read_file(fn):
 
             if cells[0] != '':
                 person, address = parse_person_address(cells[0])
-                person2address[person] = address
-                print "%s\t%s\t%s" % (currentOrg, person, currentHeaders[0])
+                person2address[person] = address   
+                print >> sys.stderr, "currentOrg = %s" % currentOrg
+                print >> sys.stderr, "person = %s" % person
+                print >> sys.stderr, "currentHeaders[0] = %s" % currentHeaders[0]
+                mandateWriter.writerow([currentOrg.encode('utf-8'), person.encode('utf-8'), currentHeaders[0].encode('utf-8')])
             if cells[1] != '':
                 person, address = parse_person_address(cells[1])
                 person2address[person] = address
-                print "%s\t%s\t%s" % (currentOrg, person, currentHeaders[1])
+                mandateWriter.writerow([currentOrg.encode('utf-8'), person.encode('utf-8'), currentHeaders[1].encode('utf-8')])
             if cells[2] != '':
                 person, address = parse_person_address(cells[2])
                 person2address[person] = address
-                print "%s\t%s\t%s" % (currentOrg, person, currentHeaders[2])
+                mandateWriter.writerow([currentOrg.encode('utf-8'), person.encode('utf-8'), currentHeaders[2].encode('utf-8')])
 
     print >> sys.stderr, "organization2address = ", organization2address
     print >> sys.stderr, "person2address = ", person2address
@@ -108,4 +126,4 @@ def determineLineType(cells):
 
 if __name__ == '__main__':
     init()
-    read_file(args['infile'])
+    process_file()
